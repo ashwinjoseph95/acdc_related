@@ -1,0 +1,13 @@
+<launch>
+  <!-- Include the first launch file -->
+  <include file="$(find racing)/launch/flatland_simulation.launch">
+
+  </include>
+
+  <!-- Include the second launch file -->
+  <include file="$(find racing)/launch/racing_controller.launch">
+
+   
+  </include>
+
+</launch>

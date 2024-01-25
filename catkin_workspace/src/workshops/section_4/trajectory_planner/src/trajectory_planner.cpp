@@ -111,32 +111,33 @@ SC CostTermIntermediate<STATE_DIM, CONTROL_DIM, MPC_NODE, SCALAR_EVAL, SCALAR>::
     // if necessary use CppAD::sin(...), CppAD::cos(...), CppAD::tan(...), CppAD::pow(...), CppAD::sqrt(...)
     // Longitudinal jerk term
     SC jerkRef = x[MPC_NODE::WEIGHTS::JERK_REF];
-    SC jerkLonCost  ;
+    SC jerkLonCost = u[0] / jerkRef;
     SC jerkLonWeight = x[MPC_NODE::WEIGHTS::JERK];
-    SC jerkLonTerm  ;
+    SC jerkLonTerm = CppAD::pow(jerkLonCost * jerkLonWeight, 2);
 
     // Alpha term
     SC alphaRef = x[MPC_NODE::WEIGHTS::ALPHA_REF];
-    SC alphaCost  ;
+    SC alphaCost = u[1] / alphaRef;
     SC alphaWeight = x[MPC_NODE::WEIGHTS::ALPHA];
-    SC alphaTerm  ;
+    SC alphaTerm = CppAD::pow(alphaCost * alphaWeight, 2);
 
     // Lateral jerk term
     //The vehicles wheel-base is defined by the variable wheelBase
     double wheelBase = MPC_NODE::systemDynamics::wheelBase;
-    SC jLat  ;
-    SC jerkLatCost  ;
+    SC jLat = (1 / wheelBase) * (2 * x[3] * CppAD::tan(x[6]) * x[4] + CppAD::pow(x[3], 2) * (CppAD::pow(CppAD::tan(x[6]), 2) + 1) * u[1]);
+    SC jerkLatCost = jLat / jerkRef;
     SC jerkLatWeight = x[MPC_NODE::WEIGHTS::JERK];
-    SC jerkLatTerm  ;
+    SC jerkLatTerm = CppAD::pow(jerkLatCost * jerkLatWeight, 2);
+// END TASK 2 CODE HERE
     // END TASK 2 CODE HERE
 
     // START TASK 3 CODE HERE
     // Velocity Term
     // if necessary use CppAD::sin(...), CppAD::cos(...), CppAD::tan(...), CppAD::pow(...), CppAD::sqrt(...)
     SC vScale = CppAD::CondExpGt(velocity, SC(10.0 / 3.6), velocity, SC(10.0 / 3.6));
-    SC vCost  ;
+    SC vCost = (velocity - x[3]) / vScale;
     SC vWeight = x[MPC_NODE::WEIGHTS::VEL];
-    SC velTerm  ;
+    SC velTerm = CppAD::pow(vCost * vWeight, 2);
     // END TASK 3 CODE HERE
 
     // START TASK 4 CODE HERE
@@ -145,9 +146,10 @@ SC CostTermIntermediate<STATE_DIM, CONTROL_DIM, MPC_NODE, SCALAR_EVAL, SCALAR>::
     SC dynObjX = x[MPC_NODE::DYNOBJCOORDS::X];
     SC dynObjY = x[MPC_NODE::DYNOBJCOORDS::Y];
     SC dynObjRef = x[MPC_NODE::WEIGHTS::DYNOBJ_REF];
-    SC dynObjDist  ;
+    SC dynObjDist = CppAD::sqrt(CppAD::pow(dynObjX - x[0], 2) + CppAD::pow(dynObjY - x[1], 2));
     SC dynObjCost = CppAD::CondExpLt(dynObjDist, dynObjRef, CppAD::cos(SC(M_PI) * CppAD::pow(dynObjDist, 2) / CppAD::pow(dynObjRef, 2)) + 1, SC(0.0));
     SC dynObjWeight = x[MPC_NODE::WEIGHTS::DYNOBJ];
+    SC dynObjTerm = CppAD::pow(dynObjCost * dynObjWeight, 2);
     SC dynObjTerm  ;
     // END TASK 4 CODE HERE
 
@@ -215,13 +217,13 @@ void ACDC_VehcicleSystem<SCALAR>::computeControlledDynamics(const StateVector<ST
 
     // The vehicles wheel-base is defined by the class variable wheelBase
 
-    derivative(0)  ; // derivative of x
-    derivative(1)  ; // derivative of y
-    derivative(2)  ; // derivative of s
-    derivative(3)  ; // derivative of v
-    derivative(4)  ; // derivative of a
-    derivative(5)  ; // derivative of psi
-    derivative(6)  ; // derivative of delta
+    derivative(0) = state(3) * cos(state(5)); // derivative of x
+    derivative(1) = state(3) * sin(state(5)); // derivative of y
+    derivative(2) = state(3); // derivative of s
+    derivative(3) = state(4); // derivative of v
+    derivative(4) = control(0); // derivative of a
+    derivative(5) = (state(3) / wheelBase) * tan(state(6)); // derivative of psi
+    derivative(6) = control(1); // derivative of delta
     // END TASK 1 CODE HERE
 }
 

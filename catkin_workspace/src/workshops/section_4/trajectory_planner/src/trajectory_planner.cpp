@@ -150,7 +150,7 @@ SC CostTermIntermediate<STATE_DIM, CONTROL_DIM, MPC_NODE, SCALAR_EVAL, SCALAR>::
     SC dynObjCost = CppAD::CondExpLt(dynObjDist, dynObjRef, CppAD::cos(SC(M_PI) * CppAD::pow(dynObjDist, 2) / CppAD::pow(dynObjRef, 2)) + 1, SC(0.0));
     SC dynObjWeight = x[MPC_NODE::WEIGHTS::DYNOBJ];
     SC dynObjTerm = CppAD::pow(dynObjCost * dynObjWeight, 2);
-    SC dynObjTerm  ;
+    // SC dynObjTerm  ;
     // END TASK 4 CODE HERE
 
     // This cost term is relevant for Section 5
